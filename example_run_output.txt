@@ -1,0 +1,64 @@
+======================================================================
+SHOPPING AGENT -- DEMO RUN
+======================================================================
+
+Available tools:
+- search_products: Search the product catalog by a free-text query (matches name/category).
+- check_stock: Check current stock quantity for a specific product id.
+- buy_product: Purchase a quantity of a product. Fails if insufficient stock.
+- delete_product: Remove a product from the catalog permanently. Admin only.
+
+
+User (customer): Find a laptop that is currently in stock
+  [agent decides] Request mentions 'laptop'. Searching catalog first.
+  [tool call]     search_products({'query': 'laptop'})
+  [observation]   OK -> [{'id': 1, 'name': 'Aurora 14 Laptop', 'category': 'laptop', 'price': 999.0, 'stock': 5}, {'id': 2, 'name': 'Nimbus Pro Laptop', 'category': 'laptop', 'price': 1299.0, 'stock': 0}]
+  [agent decides] Found 2 match(es). Using top match: 'Aurora 14 Laptop' (id=1).
+  [tool call]     check_stock({'product_id': 1})
+  [observation]   OK -> {'product_id': 1, 'name': 'Aurora 14 Laptop', 'stock': 5}
+  [final answer]  Found 'Aurora 14 Laptop' (id=1), price $999.0, currently IN STOCK (5).
+
+
+User (customer): I want to buy 2 keyboards
+  [agent decides] Request mentions 'keyboard'. Searching catalog first.
+  [tool call]     search_products({'query': 'keyboard'})
+  [observation]   OK -> [{'id': 4, 'name': 'ClickyKey Mechanical Keyboard', 'category': 'keyboard', 'price': 65.0, 'stock': 12}]
+  [agent decides] Found 1 match(es). Using top match: 'ClickyKey Mechanical Keyboard' (id=4).
+  [tool call]     check_stock({'product_id': 4})
+  [observation]   OK -> {'product_id': 4, 'name': 'ClickyKey Mechanical Keyboard', 'stock': 12}
+  [agent decides] Stock available (12). Attempting to buy quantity=2.
+  [tool call]     buy_product({'product_id': 4, 'quantity': 2})
+  [observation]   OK -> {'product_id': 4, 'name': 'ClickyKey Mechanical Keyboard', 'purchased': 2, 'remaining_stock': 10, 'total_price': 130.0}
+  [final answer]  Purchased 2 x 'ClickyKey Mechanical Keyboard' for $130.0. Remaining stock: 10.
+
+
+User (customer): Buy 10 office chairs
+  [agent decides] Request mentions 'chair'. Searching catalog first.
+  [tool call]     search_products({'query': 'chair'})
+  [observation]   OK -> [{'id': 6, 'name': 'SilentSit Office Chair', 'category': 'chair', 'price': 180.0, 'stock': 0}]
+  [agent decides] Found 1 match(es). Using top match: 'SilentSit Office Chair' (id=6).
+  [tool call]     check_stock({'product_id': 6})
+  [observation]   OK -> {'product_id': 6, 'name': 'SilentSit Office Chair', 'stock': 0}
+  [agent decides] Stock is 0. Will not attempt purchase.
+  [final answer]  'SilentSit Office Chair' is currently out of stock, so I did not place an order.
+
+
+User (customer): Delete the mouse from the catalog
+  [agent decides] Request mentions 'mouse'. Searching catalog first.
+  [tool call]     search_products({'query': 'mouse'})
+  [observation]   OK -> [{'id': 3, 'name': 'TrackMaster Mouse', 'category': 'mouse', 'price': 25.0, 'stock': 40}]
+  [agent decides] Found 1 match(es). Using top match: 'TrackMaster Mouse' (id=3).
+  [tool call]     delete_product({'product_id': 3})
+  [observation]   ERROR PERMISSION_DENIED -> Role 'customer' is not allowed to call 'delete_product'.
+  [final answer]  Could not delete product: Role 'customer' is not allowed to call 'delete_product'.
+
+
+User (admin): Delete the mouse from the catalog
+  [agent decides] Request mentions 'mouse'. Searching catalog first.
+  [tool call]     search_products({'query': 'mouse'})
+  [observation]   OK -> [{'id': 3, 'name': 'TrackMaster Mouse', 'category': 'mouse', 'price': 25.0, 'stock': 40}]
+  [agent decides] Found 1 match(es). Using top match: 'TrackMaster Mouse' (id=3).
+  [tool call]     delete_product({'product_id': 3})
+  [observation]   OK -> {'deleted_product_id': 3, 'name': 'TrackMaster Mouse'}
+  [final answer]  Deleted product 'TrackMaster Mouse' (id=3).
+
